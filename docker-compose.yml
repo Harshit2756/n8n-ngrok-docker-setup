@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-ngrok-container
+    hostname: a56a544b7655
+    user: "node"
+    environment:
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+      TZ: ${TZ}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: ${N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS}
+      N8N_RUNNERS_ENABLED: ${N8N_RUNNERS_ENABLED}
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL}
+      WEBHOOK_URL: ${WEBHOOK_URL}
+      N8N_PORT: ${N8N_PORT}
+      N8N_DEFAULT_BINARY_DATA_MODE: ${N8N_DEFAULT_BINARY_DATA_MODE}
+      NODE_VERSION: ${NODE_VERSION}
+      YARN_VERSION: ${YARN_VERSION}
+      NODE_ICU_DATA: /usr/local/lib/node_modules/full-icu
+      NODE_ENV: ${NODE_ENV}
+      N8N_RELEASE_TYPE: ${N8N_RELEASE_TYPE}
+      SHELL: /bin/sh
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
+    networks:
+      - n8n_net
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http n8n:${N8N_PORT}
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    depends_on:
+      - n8n
+    networks:
+      - n8n_net
+
+volumes:
+  n8n_data:
+
+networks:
+  n8n_net:
+    driver: bridge
